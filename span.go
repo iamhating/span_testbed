@@ -83,7 +83,7 @@ func IsZeroLength(span Span) bool {
 }
 
 func Length(span Span) *int64 {
-	if span.GetEndTS == nil {
+	if span.GetEndTS() == nil {
 		return nil
 	}
 	boundedLength := *span.GetEndTS() - span.GetStartTS()
@@ -244,6 +244,48 @@ func GetSpanOverlaps(baseSpans, applySpans []Span) (overlaps []Span) {
 			if overlap != nil {
 				overlaps = append(overlaps, overlap)
 			}
+			if EndsAtSameTime(baseSpan, overlap) {
+				baseSpanIdx++
+			} else {
+				applySpanIdx++
+			}
+		}
+	}
+
+	return
+}
+
+// You now need to assert that the type of the overlap span is the same as the
+//	constrained type T, used to represent the type of the output list
+// This can be done at any point where we call a function that returns any type
+//	satisfying Span, either in GenericSpanOverlap or GenericGetSpanOverlaps
+// There should be logic to ensure that the correct type is returned. Otherwise,
+//	the code panics. We ignore this check for now quick demonstration purposes
+	
+func GenericSpanOverlap[T, U Span](baseSpan T, applySpan U) T {
+	var overlap T
+	if HasOverlap(baseSpan, applySpan) {
+		overlap = baseSpan.Copy().(T) // One place for type casting
+		overlap.SetStartTS(MaxStartTS(baseSpan.GetStartTS(), applySpan.GetStartTS()))
+		overlap.SetEndTS(MinEndTS(baseSpan.GetEndTS(), applySpan.GetEndTS()))
+	}
+	return overlap
+}
+
+func GenericGetSpanOverlaps[T, U Span](baseSpans []T, applySpans []U) (overlaps []T) {
+	baseSpanIdx := 0
+	applySpanIdx := 0
+	for baseSpanIdx < len(baseSpans) && applySpanIdx < len(applySpans) {
+		baseSpan := baseSpans[baseSpanIdx]
+		applySpan := applySpans[applySpanIdx]
+
+		if SpanLeftOf(baseSpan, applySpan) {
+			baseSpanIdx++
+		} else if SpanRightOf(baseSpan, applySpan) {
+			applySpanIdx++
+		} else {
+			overlap := GenericSpanOverlap(baseSpan, applySpan) // An alternative for type casting
+			overlaps = append(overlaps, overlap)
 			if EndsAtSameTime(baseSpan, overlap) {
 				baseSpanIdx++
 			} else {

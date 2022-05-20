@@ -1,10 +1,10 @@
 package main
 
 type UsageSpan struct {
-	Id string
-	Name string
+	Id      string
+	Name    string
 	StartTS int64
-	EndTS *int64
+	EndTS   *int64
 }
 
 func (s UsageSpan) GetStartTS() int64 {
@@ -25,9 +25,9 @@ func (s UsageSpan) SetEndTS(tp *int64) {
 
 func (s UsageSpan) Copy() Span {
 	return UsageSpan{
-		Id: s.Id,
-		Name: s.Name,
+		Id:      s.Id,
+		Name:    s.Name,
 		StartTS: s.StartTS,
-		EndTS: s.EndTS,
+		EndTS:   s.EndTS,
 	}
 }

@@ -8,16 +8,16 @@ func toInt64P(i int64) *int64 {
 
 func main() {
 	usage := UsageSpan{
-		Id: "test-usage-span",
-		Name: "test-usage-span",
+		Id:      "test-usage-span",
+		Name:    "test-usage-span",
 		StartTS: int64(100),
-		EndTS: toInt64P(200),
+		EndTS:   toInt64P(200),
 	}
 	property := PropertySpan{
-		Id: "property-of-usage",
-		Name: "property-of-usage",
+		Id:      "property-of-usage",
+		Name:    "property-of-usage",
 		StartTS: int64(150),
-		EndTS: toInt64P(250),
+		EndTS:   toInt64P(250),
 	}
 
 	fmt.Printf("%#v\n", usage)
@@ -28,14 +28,13 @@ func main() {
 	fmt.Printf("SpanContainsTime(property, 150); want: true; got: %t\n", SpanContainsTime(property, 150))
 	fmt.Printf("SpanContainsTime(property, 50); want: false; got: %t\n", SpanContainsTime(property, 50))
 
-
 	fmt.Printf("\ncalculating span overlaps\n")
 	// I do not like the fact that I have to pass this as []Span, a list of interfaces
 	usages := []Span{usage}
 	properties := []Span{property}
 	overlaps := GetSpanOverlaps(usages, properties)
 
-	fmt.Printf("%#v\n", overlaps)
+	fmt.Printf("overlaps: %#v\n", overlaps)
 	fmt.Printf("start: %d, end: %d\n", overlaps[0].GetStartTS(), *overlaps[0].GetEndTS())
 
 	fmt.Printf("\nconverting span overlaps as interfaces to types\n")
@@ -45,7 +44,7 @@ func main() {
 		if typedOverlap, ok := overlap.(UsageSpan); ok {
 			typedOverlaps = append(typedOverlaps, typedOverlap)
 		}
-		
+
 	}
 
 	for _, typedOverlaps := range typedOverlaps {
@@ -53,5 +52,21 @@ func main() {
 		fmt.Printf("%T\n", typedOverlaps)
 		fmt.Printf("%#v\n", typedOverlaps)
 		fmt.Println(typedOverlaps.Id)
-	}	
+	}
+
+	//////////////////////
+	fmt.Printf("\ncalculating span overlaps with generics\n")
+	typedUsages := []UsageSpan{usage}
+	typedProperties := []PropertySpan{property}
+	typedOverlaps = GenericGetSpanOverlaps(typedUsages, typedProperties)
+
+	fmt.Printf("overlaps: %#v\n", typedOverlaps)
+	fmt.Printf("start: %d, end: %d\n", typedOverlaps[0].GetStartTS(), *typedOverlaps[0].GetEndTS())
+
+	for _, typedOverlap := range typedOverlaps {
+		fmt.Printf("\nprinting typed overlap element\n")
+		fmt.Printf("%T\n", typedOverlap)
+		fmt.Printf("%#v\n", typedOverlap)
+		fmt.Println(typedOverlap.Id)
+	}
 }
